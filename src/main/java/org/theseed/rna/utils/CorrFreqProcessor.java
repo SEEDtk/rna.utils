@@ -71,6 +71,8 @@ public class CorrFreqProcessor extends BaseReportProcessor implements CorrFreqRe
     private double obsCount;
     /** input stream */
     private TabbedLineReader inStream;
+    /** this is the base expectation value for histograms */
+    private double baseExpected;
 
     // COMMAND-LINE OPTIONS
 
@@ -109,7 +111,7 @@ public class CorrFreqProcessor extends BaseReportProcessor implements CorrFreqRe
         this.limits = new double[this.nBuckets];
         // Initialize the arrays.  Note we multiply here to reduce the accumulation of roundoff.
         for (int i = 0; i < this.nBuckets; i++) {
-            this.limits[i] = (i + 1) * this.bucketWidth;
+            this.limits[i] = (i + 1) * this.bucketWidth - 1.0;
             this.buckets[i] = 0;
         }
         // Create the output reporter.
@@ -119,10 +121,10 @@ public class CorrFreqProcessor extends BaseReportProcessor implements CorrFreqRe
         // Open the input stream.
         if (this.inFile == null) {
             log.info("Correlations will be read from the standard input.");
-            this.inStream = new TabbedLineReader(this.inFile);
+            this.inStream = new TabbedLineReader(System.in);
         } else {
             log.info("Correlations will be read from {}.", this.inFile);
-            this.inStream = new TabbedLineReader(System.in);
+            this.inStream = new TabbedLineReader(this.inFile);
         }
         // Find the input column index.
         this.inColIdx = this.inStream.findField(this.colName);
@@ -136,23 +138,28 @@ public class CorrFreqProcessor extends BaseReportProcessor implements CorrFreqRe
             int errors = 0;
             for (TabbedLineReader.Line line : this.inStream) {
                 double value = line.getDouble(this.inColIdx);
-                int idx = (int) ((value + 1.0) / this.bucketWidth);
-                // Insure the input value is valid.
-                if (idx > this.nBuckets || idx < 0) {
-                    log.warn("Value {} out of range.", value);
+                // We have to eliminate non-finite values:  they mess everything up.
+                if (! Double.isFinite(value))
                     errors++;
-                } else {
-                    // We need to adjust the array index.  The distribution service computes
-                    // probability <= X, so if we are at the limit of the previous bucket,
-                    // we subtract 1.
-                    if (idx > 0 && value <= this.limits[idx-1]) idx--;
-                    // Store this value in the bucket.
-                    this.buckets[idx]++;
-                    count++;
-                    if (count % 5000 == 0)
-                        log.info("{} observations processed.");
-                    // Record it in the stats object.
-                    this.stats.addValue(value);
+                else {
+                    int idx = (int) ((value + 1.0) / this.bucketWidth);
+                    // Insure the input value is valid.
+                    if (idx > this.nBuckets || idx < 0) {
+                        log.warn("Value {} out of range.", value);
+                        errors++;
+                    } else {
+                        // We need to adjust the array index.  The distribution service computes
+                        // probability <= X, so if we are at the limit of the previous bucket,
+                        // we subtract 1.
+                        if (idx > 0 && value <= this.limits[idx-1]) idx--;
+                        // Store this value in the bucket.
+                        this.buckets[idx]++;
+                        count++;
+                        if (count % 5000 == 0)
+                            log.info("{} observations processed.", count);
+                        // Record it in the stats object.
+                        this.stats.addValue(value);
+                    }
                 }
             }
             log.info("{} total observations, {} errors.", count, errors);
@@ -164,13 +171,30 @@ public class CorrFreqProcessor extends BaseReportProcessor implements CorrFreqRe
             // We compute a distribution with a mean of 0 and the specified standard
             // deviation.
             NormalDistribution dist = new NormalDistribution(null, 0.0, sdev);
+            // Save the base expectation value.
+            this.baseExpected = dist.cumulativeProbability(-1.0);
+            // Here we will accumulate the total of the buckets processed so far.
+            int cum = 0;
             // Now we write the reports for the buckets.
-            // TODO report the buckets
+            this.reporter.openReport(writer);
+            for (int i = 0; i < this.nBuckets; i++) {
+                cum += this.buckets[i];
+                double actual = cum / this.obsCount;
+                double expected = dist.cumulativeProbability(this.limits[i]);
+                this.reporter.reportBucket(this.limits[i], expected, actual);
+            }
+            // Finish the report.
+            this.reporter.closeReport();
         } finally {
             if (this.inStream != null)
                 inStream.close();
         }
 
+    }
+
+    @Override
+    public double getBaseExpected() {
+        return this.baseExpected;
     }
 
 }

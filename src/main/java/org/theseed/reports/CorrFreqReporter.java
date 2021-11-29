@@ -20,6 +20,11 @@ public abstract class CorrFreqReporter extends BaseReporterReporter {
      */
     public interface IParms {
 
+        /**
+         * @return the expected value for -1.0, for histogram processing
+         */
+        public double getBaseExpected();
+
     }
 
     /**
@@ -29,8 +34,7 @@ public abstract class CorrFreqReporter extends BaseReporterReporter {
         RAW {
             @Override
             public CorrFreqReporter create(IParms processor) {
-                // TODO code for create
-                return null;
+                return new RawFreqReporter(processor);
             }
         };
 
