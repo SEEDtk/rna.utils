@@ -16,8 +16,8 @@ import org.theseed.utils.BaseProcessor;
  * rnaMaps		consolidate RNA maps from batch expression data runs
  * rnaCorr		determine the +/0/- correlation between genes in an RNA database
  * bGroups		read an RNA database and output the group IDs, organized by Blattner number
- * freq			perform frequency analysis on pearson coefficients
  * blacklist	remove correlation pairs relating to operons from a correlation file
+ * sampleCheck	analyze variability in the expression data within a database
  */
 public class App
 {
@@ -56,11 +56,11 @@ public class App
         case "bGroups" :
             processor = new BlattnerProcessor();
             break;
-        case "freq" :
-            processor = new CorrFreqProcessor();
-            break;
         case "blacklist" :
             processor = new BlacklistProcessor();
+            break;
+        case "sampleCheck" :
+            processor = new SampleCheckProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

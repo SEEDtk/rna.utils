@@ -45,6 +45,7 @@ import org.theseed.utils.ParseFailureException;
  * --baseId		ID of the base sample for a SAMPLE baseline
  * --baseFile	name of file containing baseline data for a FILE baseline
  * --minCorr	minimum absolute value of pearson correlation for output
+ * --pure		only include high-quality samples
  *
  * @author Bruce Parrello
  *
@@ -91,6 +92,10 @@ public class RnaCorrelationProcessor extends BaseProcessor implements IBaselineP
     @Option(name = "--minCorr", usage = "minimum absolute value of pearson correlation for output")
     private double minCorr;
 
+    /** if specified, low-quality samples will be skipped */
+    @Option(name = "--pure", usage = "if specified, low-quality samples will be skipped")
+    private boolean pureSamples;
+
     /** file containing the RNA database */
     @Argument(index = 0, metaVar = "rnaData.ser", usage = "RNA database file")
     private File rnaFile;
@@ -103,6 +108,7 @@ public class RnaCorrelationProcessor extends BaseProcessor implements IBaselineP
         this.baseSampleId = null;
         this.outFile = null;
         this.minCorr = 0.0;
+        this.pureSamples = false;
     }
 
     @Override
@@ -185,9 +191,16 @@ public class RnaCorrelationProcessor extends BaseProcessor implements IBaselineP
    private void createRowMaps() {
        this.triageMap = new HashMap<String, double[]>((this.data.height() * 4 + 2) / 3);
        this.levelMap = new HashMap<String, double[]>((this.data.height() * 4 + 2) / 3);
+       // Now we need to create a column map that includes only the columns that are good.
+       int[] colMap;
+       if (this.pureSamples)
+           colMap = IntStream.range(0, this.data.size()).filter(i -> this.data.getJob(i).isGood()).toArray();
+       else
+           colMap = IntStream.range(0, this.data.size()).toArray();
+       int nCols = colMap.length;
        // Get the number of columns in the RNA database.
-       int nCols = this.data.size();
-       log.info("Computing triage levels for {} features.", this.data.height());
+       log.info("Computing triage levels for {} features and {} of {} samples.",
+               this.data.height(), nCols, this.data.size());
        // Loop through the rows, doing the triage.
        for (RnaData.Row row : this.data) {
            String fid = row.getFeat().getId();
@@ -195,17 +208,16 @@ public class RnaCorrelationProcessor extends BaseProcessor implements IBaselineP
            // Loop through the weights, converting them to expression levels.
            double[] triages = new double[nCols];
            double[] levels = new double[nCols];
-           for (int i = 0; i < nCols; i++) {
+           for (int k = 0; k < nCols; k++) {
+               int i = colMap[k];
                RnaData.Weight weight = row.getWeight(i);
-               double wVal = Double.NaN;
-               if (weight != null && weight.isExactHit())
-                    wVal = weight.getWeight();
-               if (Double.isFinite(wVal)) {
-                   triages[i] = this.converter.convert(wVal);
-                   levels[i] = wVal;
+               if (weight != null && weight.isExactHit()) {
+                    double wVal = weight.getWeight();
+                   triages[k] = this.converter.convert(wVal);
+                   levels[k] = wVal;
                } else {
-                   triages[i] = Double.NaN;
-                   levels[i] = Double.NaN;
+                   triages[k] = Double.NaN;
+                   levels[k] = Double.NaN;
                }
            }
            this.triageMap.put(fid, triages);
