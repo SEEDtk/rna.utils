@@ -3,6 +3,7 @@
  */
 package org.theseed.reports;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -31,6 +32,11 @@ public abstract class SampleCheckReporter extends BaseReporterReporter {
          */
         boolean getPure();
 
+        /**
+         * @return the name of a file containing a tabular cluster report
+         */
+        File getClusterFile();
+
     }
 
     /**
@@ -46,6 +52,11 @@ public abstract class SampleCheckReporter extends BaseReporterReporter {
             @Override
             public SampleCheckReporter create(IParms processor) throws ParseFailureException, IOException {
                 return new CorrelationSampleCheckReporter(processor);
+            }
+        }, WEIGHTED {
+            @Override
+            public SampleCheckReporter create(IParms processor) throws ParseFailureException, IOException {
+                return new WeightedBaselineSampleCheckReporter(processor);
             }
         };
 

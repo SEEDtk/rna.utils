@@ -33,6 +33,7 @@ import org.theseed.utils.ParseFailureException;
  *
  * --format		report format
  * --pure		only include good samples
+ * --clusters	the name of a file containing a tabular cluster report of the samples (WEIGHTED format)
  *
  * @author Bruce Parrello
  *
@@ -57,6 +58,10 @@ public class SampleCheckProcessor extends BaseReportProcessor implements IParms 
     @Option(name = "--pure", usage = "if specified, only good samples will be processed")
     private boolean pureMode;
 
+    /** the name of the cluster file for the WEIGHTED report */
+    @Option(name = "--clusters", metaVar = "clusters.tbl", usage = "file containing tabular cluster report (WEIGHTED only)")
+    private File clusterFile;
+
     /** RNA seq expression database file name */
     @Argument(index = 0, metaVar = "rnaData.ser", usage = "input RNA seq expression database")
     private File rnaFile;
@@ -65,6 +70,7 @@ public class SampleCheckProcessor extends BaseReportProcessor implements IParms 
     protected void setReporterDefaults() {
         this.reportType = SampleCheckReporter.Type.BASELINE;
         this.pureMode = false;
+        this.clusterFile = null;
     }
 
     @Override
@@ -93,6 +99,11 @@ public class SampleCheckProcessor extends BaseReportProcessor implements IParms 
     @Override
     public boolean getPure() {
         return this.pureMode;
+    }
+
+    @Override
+    public File getClusterFile() {
+        return this.clusterFile;
     }
 
 }
