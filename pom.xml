@@ -73,15 +73,9 @@
             <version>5.0.0</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.0.0</version>
-           <exclusions>
-                <exclusion>
-                    <groupId>xml-apis</groupId>
-                    <artifactId>xml-apis</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.theseed</groupId>
+            <artifactId>excel.utils</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.theseed</groupId>

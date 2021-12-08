@@ -1,0 +1,7 @@
+cluster	fid	gene	subsystems	function
+CL1	fig|511145.183.peg.11	yaaW		Hypothetical protein YaaW, modifier of biofilm
+CL1	fig|511145.183.peg.35	caiE	CarnMetaTran,CarnOper	Carnitine operon protein CaiE
+CL1	fig|511145.183.peg.42	fixB		Electron transfer flavoprotein, alpha subunit ecFixB
+CL2	fig|511145.183.peg.704	speF	ArgiDecaAgmaClus,CadbOperItSRolePh,PolyMeta,PutrViaOrni	Ornithine decarboxylase, fold type I (EC 4.1.1.17) ## inducible
+CL3	fig|511145.183.peg.718			H repeat-associated protein, YhhI family
+CL4	fig|511145.183.peg.2396	flk	Flag	Flagellar regulator flk

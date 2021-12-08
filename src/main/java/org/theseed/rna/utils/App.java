@@ -18,6 +18,9 @@ import org.theseed.utils.BaseProcessor;
  * bGroups		read an RNA database and output the group IDs, organized by Blattner number
  * blacklist	remove correlation pairs relating to operons from a correlation file
  * sampleCheck	analyze variability in the expression data within a database
+ * clusterCheck	perform comparative analysis of sample clusters
+ * split		split a large database into clusters
+ * sheets		create spreadsheets of the sample clusters output by the split sub-command
  */
 public class App
 {
@@ -61,6 +64,12 @@ public class App
             break;
         case "sampleCheck" :
             processor = new SampleCheckProcessor();
+            break;
+        case "split" :
+            processor = new ClusterSplitProcessor();
+            break;
+        case "sheets" :
+            processor = new ClusterSheetProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
