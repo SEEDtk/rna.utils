@@ -13,12 +13,17 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/shared">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/p3api">
 		<attributes>
 			<attribute name="without_test_code" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/shared">
+	<classpathentry combineaccessrules="false" kind="src" path="/java.erdb">
 		<attributes>
 			<attribute name="without_test_code" value="true"/>
 		</attributes>

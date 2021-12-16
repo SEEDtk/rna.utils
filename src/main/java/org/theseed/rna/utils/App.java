@@ -2,6 +2,9 @@ package org.theseed.rna.utils;
 
 import java.util.Arrays;
 
+import org.theseed.rna.erdb.ClusterLoadProcessor;
+import org.theseed.rna.erdb.DbLoadProcessor;
+import org.theseed.rna.erdb.MetaLoadProcessor;
 import org.theseed.utils.BaseProcessor;
 
 /**
@@ -21,6 +24,9 @@ import org.theseed.utils.BaseProcessor;
  * clusterCheck	perform comparative analysis of sample clusters
  * split		split a large database into clusters
  * sheets		create spreadsheets of the sample clusters output by the split sub-command
+ * metaLoad		load genome metadata into an SQL database
+ * dbLoad		load an RNA database into an SQL database
+ * clusterLoad	load sample clustering data into an SQL database
  */
 public class App
 {
@@ -70,6 +76,15 @@ public class App
             break;
         case "sheets" :
             processor = new ClusterSheetProcessor();
+            break;
+        case "metaLoad" :
+            processor = new MetaLoadProcessor();
+            break;
+        case "dbLoad" :
+            processor = new DbLoadProcessor();
+            break;
+        case "clusterLoad" :
+            processor = new ClusterLoadProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
