@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="RnaSeqDB">
+	<entities>
+		<data-source id="sqlite_jdbc-17dc8442083-7004de4463d99b85">
+			<entity id="1" name="Feature" fq-name="Feature"/>
+			<entity id="2" name="FeatureGroup" fq-name="FeatureGroup"/>
+			<entity id="3" name="FeatureToGroup" fq-name="FeatureToGroup"/>
+			<entity id="4" name="Genome" fq-name="Genome"/>
+			<entity id="5" name="Measurement" fq-name="Measurement"/>
+			<entity id="6" name="RnaSample" fq-name="RnaSample"/>
+			<entity id="7" name="SampleCluster" fq-name="SampleCluster"/>
+			<entity id="8" name="_diagram" fq-name="&quot;_diagram&quot;"/>
+			<entity id="9" name="_fields" fq-name="&quot;_fields&quot;"/>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="FK_FeatureToGroup_Feature" fq-name="FeatureToGroup.FK_FeatureToGroup_Feature" type="fk" pk-ref="1" fk-ref="3"/>
+		<relation name="FK_FeatureToGroup_FeatureGroup_2" fq-name="FeatureToGroup.FK_FeatureToGroup_FeatureGroup_2" type="fk" pk-ref="2" fk-ref="3"/>
+		<relation name="FK_Feature_Genome" fq-name="Feature.FK_Feature_Genome" type="fk" pk-ref="4" fk-ref="1"/>
+		<relation name="FK_Measurement_Genome" fq-name="Measurement.FK_Measurement_Genome" type="fk" pk-ref="4" fk-ref="5"/>
+		<relation name="FK_RnaSample_Genome" fq-name="RnaSample.FK_RnaSample_Genome" type="fk" pk-ref="4" fk-ref="6"/>
+		<relation name="FK_Measurement_RnaSample_2" fq-name="Measurement.FK_Measurement_RnaSample_2" type="fk" pk-ref="6" fk-ref="5"/>
+		<relation name="FK_RnaSample_SampleCluster_2" fq-name="RnaSample.FK_RnaSample_SampleCluster_2" type="fk" pk-ref="7" fk-ref="6"/>
+	</relations>
+</diagram>

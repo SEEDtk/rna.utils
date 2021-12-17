@@ -57,6 +57,8 @@ import org.theseed.utils.ParseFailureException;
  *
  * --type		type of database (default SQLITE)
  * --dbfile		database file name (SQLITE only)
+ * --url		URL of database (host and name)
+ * --parms		database connection parameter string (currently only MySQL)
  * --alias		regular-expression pattern for finding the secondary alias
  *
  * @author Bruce Parrello

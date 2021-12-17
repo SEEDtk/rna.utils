@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.theseed.rna.erdb;
 
@@ -15,25 +15,22 @@ import org.theseed.utils.ParseFailureException;
  */
 public class ClusterLoadProcessor extends BaseDbProcessor {
 
-	@Override
-	protected void setDbDefaults() {
-		// TODO code for setDbDefaults
+    @Override
+    protected void setDbDefaults() {
+        // TODO code for setDbDefaults
 
-	}
+    }
 
-	@Override
-	protected void runDbCommand(DbConnection db) throws Exception {
-		// TODO code for runDbCommand
+    @Override
+    protected void runDbCommand(DbConnection db) throws Exception {
+        // TODO code for runDbCommand
 
-	}
+    }
 
-	@Override
-	protected boolean validateParms() throws IOException, ParseFailureException {
-		// TODO code for validateParms
-		return false;
-	}
-	// FIELDS
-	// TODO data members for ClusterLoadProcessor
+    @Override
+    protected boolean validateParms() throws IOException, ParseFailureException {
+        // TODO code for validateParms
+        return false;
+    }
 
-	// TODO constructors and methods for ClusterLoadProcessor
 }
