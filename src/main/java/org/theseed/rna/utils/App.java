@@ -27,6 +27,7 @@ import org.theseed.utils.BaseProcessor;
  * metaLoad		load genome metadata into an SQL database
  * dbLoad		load an RNA database into an SQL database
  * clusterLoad	load sample clustering data into an SQL database
+ * download		download a set of RNA results from PATRIC and produce a metadata file for them
  */
 public class App
 {
@@ -85,6 +86,9 @@ public class App
             break;
         case "clusterLoad" :
             processor = new ClusterLoadProcessor();
+            break;
+        case "download" :
+            processor = new SampleDownloadProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

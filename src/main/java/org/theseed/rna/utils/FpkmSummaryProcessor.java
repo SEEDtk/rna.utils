@@ -36,7 +36,7 @@ import org.theseed.utils.BaseProcessor;
  *
  * The standard input should contain a tab-delimited metadata file describing each sample.  The file should contain the
  * sample ID in the first column, the production level in the second (in mg/l), the optical density in the third, and the
- * original sample name in the third.  It is expected that some values will be missing.  Only samples present in the file
+ * original sample name in the fourth.  It is expected that some values will be missing.  Only samples present in the file
  * will be processed.  The file should be tab-delimited with headers.
  *
  * The regulon definition file is also tab-delimited with headers.  The first column should contain a feature ID from the

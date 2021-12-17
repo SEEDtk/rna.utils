@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
@@ -29,6 +31,7 @@ import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.Relop;
 import org.theseed.rna.RnaData;
 import org.theseed.utils.ParseFailureException;
+import org.theseed.utils.PatternMap;
 
 /**
  * This command loads an RNA database file into the live RNA SQL database.  The database must be initialized
@@ -40,94 +43,61 @@ import org.theseed.utils.ParseFailureException;
  *
  * -h	display command-line usage
  * -v	display more frequent log messages
+ * -m	type of special measurements to perform (may occur multiple times
  *
  * --type		type of database (default SQLITE)
  * --dbfile		database file name (SQLITE only)
  * --url		URL of database (host and name)
  * --parms		database connection parameter string (currently only MySQL)
- * --ncbi		the name of a tab-delimited with headers containing (0) the sample ID, (1) the NCBI project ID,
+ * --ncbi		the name of a tab-delimited file with headers containing (0) the sample ID, (1) the NCBI project ID,
  * 				and (2) the PUBMED ID of the associated paper
+ * --proj		the name of a tab-delimited file with headers containing (0) a regex for the sample ID, (1) the project
+ * 				ID to use, and (2) the PUBMED ID of the associated paper
  *
  * @author Bruce Parrello
  *
  */
-public class DbLoadProcessor extends BaseDbProcessor {
+public class DbLoadProcessor extends BaseDbProcessor implements MeasureComputer.IParms {
 
     /**
-     * This class describes a single measurement.  Since measurements cannot be inserted until the
-     * measured samples exist, we queue them and run them at the end.  This allows us to batch
-     * the sample queries to improve performance.
+     * This object describes project/paper information for a sample.
      */
-    private static class MeasurementDesc {
+    public static class ProjInfo {
 
-        /** ID of the sample being measured */
-        protected String sampleId;
-        /** type of measurement */
-        protected String type;
-        /** value of the measurement */
-        protected double value;
+        /** project ID, or NULL if none */
+        private String projectId;
+        /** pubmed ID, or 0 if none */
+        private int pubmedId;
 
         /**
-         * Create a measurement.
+         * Create a project info record from the project and pubmed strings.
          *
-         * @param sample		ID of the sample being measured
-         * @param typeName		type of measurement
-         * @param measurement	value of measurement
+         * @param project	project string, or empty if no project
+         * @param pubmed	pubmed ID number, or empty if no associated paper
          */
-        public MeasurementDesc(String sample, String typeName, double measurement) {
-            this.sampleId = sample;
-            this.type = typeName;
-            this.value = measurement;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((this.sampleId == null) ? 0 : this.sampleId.hashCode());
-            result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (!(obj instanceof MeasurementDesc)) {
-                return false;
-            }
-            MeasurementDesc other = (MeasurementDesc) obj;
-            if (this.sampleId == null) {
-                if (other.sampleId != null) {
-                    return false;
-                }
-            } else if (!this.sampleId.equals(other.sampleId)) {
-                return false;
-            }
-            if (this.type == null) {
-                if (other.type != null) {
-                    return false;
-                }
-            } else if (!this.type.equals(other.type)) {
-                return false;
-            }
-            return true;
+        public ProjInfo(String project, String pubmed) {
+            this.projectId = (StringUtils.isBlank(project) ? null : project);
+            this.pubmedId = (StringUtils.isBlank(pubmed) ? 0 : Integer.valueOf(pubmed));
         }
 
         /**
-         * Store this measurement in the specified insert statement
+         * Store this project information in the specified loader.
          *
-         * @param loader	insert statement to update
+         * @param jobLoader		sample record loader
          *
          * @throws SQLException
          */
-        public void storeData(DbLoader loader) throws SQLException {
-            loader.set("sample_id", sampleId);
-            loader.set("value", this.value);
-            loader.set("measure_type", this.type);
+        public void store(DbLoader jobLoader) throws SQLException {
+            jobLoader.set("project_id", this.projectId);
+            if (this.pubmedId == 0)
+                jobLoader.setNull("pubmed");
+            else
+                jobLoader.set("pubmed",  this.pubmedId);
         }
+
     }
+
+
     // FIELDS
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(DbLoadProcessor.class);
@@ -137,10 +107,12 @@ public class DbLoadProcessor extends BaseDbProcessor {
     private Set<MeasurementDesc> measurements;
     /** list of feature IDs in the order expected by the database */
     private List<String> featureIndex;
-    /** map of sample IDs to project IDs */
-    private Map<String, String> projectMap;
-    /** map of sample IDs to pubmed IDs */
-    private Map<String, Integer> pubmedMap;
+    /** map of sample IDs to project info */
+    private Map<String, ProjInfo> stringMap;
+    /** map of sample ID patterns to project info */
+    private PatternMap<ProjInfo> patternMap;
+    /** list of measurers */
+    private List<MeasureComputer> measurerList;
     /** match pattern for genome IDs */
     private static final Pattern GENOME_ID_PATTERN = Pattern.compile("\\d+\\.\\d+");
 
@@ -149,6 +121,18 @@ public class DbLoadProcessor extends BaseDbProcessor {
     /** NCBI attribute file name */
     @Option(name = "--ncbi", metaVar = "srrReport.tbl", usage = "name of a file containing pubmed and project data from NCBI")
     private File ncbiFile;
+
+    /** project pattern file name */
+    @Option(name = "--proj", metaVar = "patterns.tbl", usage = "name of a file containing pubmed and project data based on sample ID regex patterns")
+    private File patternFile;
+
+    /** types of measurement to perform */
+    @Option(name = "--measure", aliases = { "-m" }, usage = "types of measurements to perform")
+    private List<MeasureComputer.Type> measurers;
+
+    /** if specified, existing samples will be deleted before adding the new ones */
+    @Option(name = "--replace", usage = "if specified, existing copies of the named samples will be deleted before loading")
+    private boolean replaceFlag;
 
     /** target genome ID */
     @Argument(index = 0, metaVar = "genomeId", usage = "ID of genome to which the RNA was mapped", required = true)
@@ -161,6 +145,8 @@ public class DbLoadProcessor extends BaseDbProcessor {
     @Override
     protected void setDbDefaults() {
         this.measurements = new HashSet<MeasurementDesc>(1000);
+        this.measurers = new ArrayList<MeasureComputer.Type>();
+        this.replaceFlag = false;
     }
 
     @Override
@@ -175,9 +161,8 @@ public class DbLoadProcessor extends BaseDbProcessor {
         }
         if (! GENOME_ID_PATTERN.matcher(this.genomeId).matches())
             throw new ParseFailureException("Invalid genome ID \"" + this.genomeId + "\".");
-        // Process the NCBI maps.
-        this.projectMap = new HashMap<String, String>(1000);
-        this.pubmedMap = new HashMap<String, Integer>(1000);
+        // Process the project-data maps.
+        this.stringMap = new HashMap<String, ProjInfo>(1000);
         if (this.ncbiFile != null) {
             try (TabbedLineReader ncbiStream = new TabbedLineReader(this.ncbiFile)) {
                 int keyCol = ncbiStream.findColumn("sample_id");
@@ -186,15 +171,30 @@ public class DbLoadProcessor extends BaseDbProcessor {
                 for (TabbedLineReader.Line line : ncbiStream) {
                     String sampleId = line.get(keyCol);
                     String project = line.get(projCol);
-                    if (! StringUtils.isBlank(project))
-                        this.projectMap.put(sampleId, project);
                     String pubmed = line.get(pubCol);
-                    if (! StringUtils.isBlank(pubmed))
-                        this.pubmedMap.put(sampleId, Integer.valueOf(pubmed));
+                    this.stringMap.put(sampleId, new ProjInfo(project, pubmed));
                 }
             }
-            log.info("{} samples with projects, {} with papers.", this.projectMap.size(), this.pubmedMap.size());
+            log.info("{} sample IDs found in {}.", this.stringMap.size(), this.ncbiFile);
         }
+        this.patternMap = new PatternMap<ProjInfo>();
+        if (this.patternFile != null) {
+            try (TabbedLineReader patternStream = new TabbedLineReader(this.patternFile)) {
+                int keyCol = patternStream.findColumn("sample_id");
+                int projCol = patternStream.findColumn("project");
+                int pubCol = patternStream.findColumn("pubmed");
+                for (TabbedLineReader.Line line : patternStream) {
+                    String pattern = line.get(keyCol);
+                    String project = line.get(projCol);
+                    String pubmed = line.get(pubCol);
+                    this.patternMap.add(pattern, new ProjInfo(project, pubmed));
+                }
+            }
+            log.info("{} sample patterns found in {}.", this.patternMap.size(), this.patternFile);
+        }
+        // Get the list of measurers.
+        this.measurerList = this.measurers.stream().map(x -> x.create(this)).collect(Collectors.toList());
+        log.info("{} measurement computers configured.", this.measurerList.size());
         return true;
     }
 
@@ -216,6 +216,10 @@ public class DbLoadProcessor extends BaseDbProcessor {
         }
         if (this.featureIndex.isEmpty())
             throw new ParseFailureException("Genome ID \"" + this.genomeId + "\" is not found or has no features.");
+        // If we are replacing, we delete the samples first.  We do this outside of the main transaction, to avoid
+        // locking problems.
+        if (this.replaceFlag)
+            this.deleteOldSamples(db);
         // Perform all the updates in a single transaction.
         try (var xact = db.new Transaction()) {
             // Create a loader for the samples.
@@ -246,6 +250,24 @@ public class DbLoadProcessor extends BaseDbProcessor {
     }
 
     /**
+     * Delete any copies of the RNA samples that might still be in the database.
+     *
+     * @param db	database from which the samples are to be deleted
+     *
+     * @throws SQLException
+     */
+    private void deleteOldSamples(DbConnection db) throws SQLException {
+        try (var xact = db.new Transaction()) {
+            // Get the list of sample IDs.
+            Set<String> samples = this.data.getSamples().stream().map(x -> x.getName()).collect(Collectors.toSet());
+            log.info("Deleting existing copies of {} samples.", samples.size());
+            db.deleteRecords("RnaSample", samples);
+            // Lock the deletes.
+            xact.commit();
+        }
+    }
+
+    /**
      * Load a sample into the RnaSample table and queue up any measurements we have.
      *
      * @param jobLoader		loader for inserting sample records
@@ -263,13 +285,14 @@ public class DbLoadProcessor extends BaseDbProcessor {
         jobLoader.set("read_count", sample.getReadCount());
         jobLoader.set("quality", sample.getQuality());
         jobLoader.set("suspicious",  sample.isSuspicious());
-        jobLoader.set("project_id", this.projectMap.get(sampleId));
-        Integer pubmed = this.pubmedMap.get(sampleId);
-        if (pubmed == null)
-            jobLoader.setNull("pubmed");
-        else
-            jobLoader.set("pubmed", (int) pubmed);
         jobLoader.set("process_date", sample.getProcessingDate());
+        // Now we need to fill in the project and pubmed.  First, check
+        // for an entry in the string map, then the pattern map.
+        ProjInfo proj = this.stringMap.get(sampleId);
+        if (proj == null)
+            proj = this.patternMap.get(sampleId);
+        if (proj != null)
+            proj.store(jobLoader);
         // Now copy the features and count the number of features with values.
         double[] featData = new double[this.featureIndex.size()];
         int featCount = 0;
@@ -289,22 +312,8 @@ public class DbLoadProcessor extends BaseDbProcessor {
         // Insert the record.
         jobLoader.insert();
         // Now we queue the measurements.
-        this.storeMeasurement(sampleId, "OD/600", sample.getOpticalDensity());
-        this.storeMeasurement(sampleId, "thr_production", sample.getProduction());
-    }
-
-    /**
-     * Queue a measurement for the specified sample.
-     *
-     * @param sampleId		sample ID
-     * @param type			measurement type
-     * @param value			measurement value
-     */
-    private void storeMeasurement(String sampleId, String type, double value) {
-        if (Double.isFinite(value)) {
-            MeasurementDesc desc = new MeasurementDesc(sampleId, type, value);
-            this.measurements.add(desc);
-        }
+        for (MeasureComputer m : this.measurerList)
+            this.measurements.addAll(m.measureSample(sampleId, data));
     }
 
 }

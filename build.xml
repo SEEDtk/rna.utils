@@ -3,10 +3,10 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <!--define folder properties-->
+    <property environment="env" />
     <property name="dir.buildfile" value="."/>
     <property name="dir.workspace" value="${dir.buildfile}/../.."/>
     <property name="dir.jarfile" value="${dir.workspace}/git/kernel/jars"/>
-    <property environment="env" />
     <target name="create_run_jar">
         <jar destfile="${dir.jarfile}/rna.utils.jar" filesetmanifest="mergewithoutmain">
             <manifest>
@@ -36,6 +36,8 @@
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/bouncycastle/bcpkix-jdk15on/1.68/bcpkix-jdk15on-1.68.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/bouncycastle/bcprov-jdk15on/1.68/bcprov-jdk15on-1.68.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/apache/santuario/xmlsec/2.2.1/xmlsec-2.2.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/com/fasterxml/woodstox/woodstox-core/5.2.1/woodstox-core-5.2.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/codehaus/woodstox/stax2-api/4.2/stax2-api-4.2.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/2.3.2/jakarta.xml.bind-api-2.3.2.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/jakarta/activation/jakarta.activation-api/1.2.1/jakarta.activation-api-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/apache/xmlgraphics/batik-all/1.13/batik-all-1.13.jar"/>
@@ -85,6 +87,10 @@
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/apache/httpcomponents/fluent-hc/4.5.13/fluent-hc-4.5.13.jar"/>
+            <fileset dir="${dir.workspace}/git/java.erdb/target/classes"/>
+            <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/xerial/sqlite-jdbc/3.36.0.3/sqlite-jdbc-3.36.0.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/mysql/mysql-connector-java/8.0.27/mysql-connector-java-8.0.27.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/com/google/protobuf/protobuf-java/3.11.4/protobuf-java-3.11.4.jar"/>
         </jar>
     </target>
 </project>

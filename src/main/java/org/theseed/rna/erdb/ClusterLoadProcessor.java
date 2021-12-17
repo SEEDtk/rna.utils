@@ -10,6 +10,7 @@ import org.theseed.java.erdb.DbConnection;
 import org.theseed.utils.ParseFailureException;
 
 /**
+ *
  * @author Bruce Parrello
  *
  */
@@ -22,15 +23,15 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
     }
 
     @Override
-    protected void runDbCommand(DbConnection db) throws Exception {
-        // TODO code for runDbCommand
-
-    }
-
-    @Override
     protected boolean validateParms() throws IOException, ParseFailureException {
         // TODO code for validateParms
         return false;
+    }
+
+    @Override
+    protected void runDbCommand(DbConnection db) throws Exception {
+        // TODO code for runDbCommand
+
     }
 
 }
