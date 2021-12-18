@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -142,11 +143,17 @@ public class MetaLoadProcessor extends BaseDbProcessor {
             log.info("Deleting old version of genome {}.", this.genomeId);
             db.deleteRecord("Genome", this.genomeId);
         }
+        // Get a list of the feature IDs in a reasonable order.
+        List<Feature> pegs = this.refGenome.getPegs().stream().sorted(new Feature.LocationComparator())
+                .collect(Collectors.toList());
+        // Now we can begin updating the database.
         try (var xact = db.new Transaction()) {
             log.info("Inserting genome {} into the Genome table.", this.genomeId);
             try (DbLoader loader = DbLoader.batch(db, "Genome")) {
                 loader.set("genome_id", this.genomeId);
                 loader.set("genome_name", this.refGenome.getName());
+                loader.set("genome_len", this.refGenome.getLength());
+                loader.set("peg_count", pegs.size());
                 loader.insert();
             }
             // Now we need to add the features.  These are taken from the GTO.  We only do the pegs.
@@ -156,7 +163,7 @@ public class MetaLoadProcessor extends BaseDbProcessor {
                 // This counter will be used for the sequence number.
                 int seqNo = 0;
                 // Loop through the pegs.
-                for (Feature feat : this.refGenome.getPegs()) {
+                for (Feature feat : pegs) {
                     // Store the feature ID.
                     loader.set("fig_id", feat.getId());
                     // Store the location.
@@ -215,7 +222,7 @@ public class MetaLoadProcessor extends BaseDbProcessor {
                     groupLoader.set("group_type", headers[i]);
                     String[] groupNames = StringUtils.split(line.get(i), ',');
                     for (String groupName : groupNames) {
-                        String groupId = this.genomeId + ";" + groupName;
+                        String groupId = this.genomeId + ":" + groupName;
                         // Insure the group exists.
                         if (! groups.contains(groupName)) {
                             log.info("Inserting group record for {}.", groupId);

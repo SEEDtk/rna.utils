@@ -6,6 +6,10 @@ package org.theseed.rna.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +18,7 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.cli.CopyTask;
+import org.theseed.cli.DirTask;
 import org.theseed.rna.jobs.RnaJob;
 import org.theseed.utils.BaseReportProcessor;
 import org.theseed.utils.ParseFailureException;
@@ -84,26 +89,61 @@ public class SampleDownloadProcessor extends BaseReportProcessor {
             log.info("Creating output directory {}.", this.outDir);
             FileUtils.forceMkdir(this.outDir);
         }
-        // Prepare the FPKM subdirectory.  If it exists, it must be deleted or the copy task will fail.
+        // Prepare the FPKM subdirectory.
         fpkmDir = new File(this.outDir, RnaJob.FPKM_DIR);
-        if (fpkmDir.exists())
-            FileUtils.forceDelete(fpkmDir);
-        log.info("Output will be to {}.", fpkmDir);
+        if (! fpkmDir.isDirectory()) {
+            log.info("Creating output FPKM subdirectory.");
+            FileUtils.forceMkdir(fpkmDir);
+        }
+        log.info("Samples will be copied to {}.", fpkmDir);
     }
 
     @Override
     protected void runReporter(PrintWriter writer) throws Exception {
         // Write the output header.
         writer.println("sample\tthr_mg/l\tOD_600m\told_name\tsuspicious");
-        // Copy the files from PATRIC to our output directory.
-        log.info("Copying FPKM tracking files from {}.", this.inDir);
-        CopyTask copy = new CopyTask(this.workDir, this.workspace);
-        File[] fpkmFiles = copy.copyRemoteFolder(this.inDir + "/" + RnaJob.FPKM_DIR, true);
-        log.info("{} files copied into {}.", fpkmFiles.length, fpkmDir);
+        // Get the files already in the output directory.
+        Set<String> processed = Arrays.stream(this.fpkmDir.list()).collect(Collectors.toCollection(TreeSet::new));
+        log.info("{} files already found in output directory.", processed.size());
+        // Get all the files in the input directory, eliminating the ones already processed.
+        String remoteFolder = (this.inDir + "/" + RnaJob.FPKM_DIR);
+        DirTask lister = new DirTask(this.workDir, this.workspace);
+        Set<String> files = lister.list(remoteFolder).stream().map(x -> x.getName())
+                .filter(x -> ! processed.contains(x)).collect(Collectors.toSet());
+        // Now we have all the files to copy.
+        log.info("{} new files found in PATRIC directory {}.", files.size(), this.inDir);
+        CopyTask copy = new CopyTask(this.outDir, this.workspace);
+        // If there were no files found in the directory, try a full directory copy.
+        if (processed.size() == 0) {
+            log.info("Performing full-directory copy.");
+            File[] newFiles = copy.copyRemoteFolder(remoteFolder, true);
+            log.info("{} files copied.", newFiles.length);
+            Arrays.stream(newFiles).forEach(x -> processed.add(x.getName()));
+        } else {
+            // Loop through the files in the remote folder
+            log.info("Performing file-by-file copy.");
+            long start = System.currentTimeMillis();
+            int copied = 0;
+            int total = files.size();
+            for (String remoteName : files) {
+                String remoteFile = remoteFolder + "/" + remoteName;
+                File localFile = new File(this.fpkmDir, remoteName);
+                copy.copyRemoteFile(remoteFile, localFile);
+                processed.add(remoteName);
+                if (log.isInfoEnabled()) {
+                    copied++;
+                    if (copied % 10 == 0) {
+                        long timeLeft = (System.currentTimeMillis() - start) * (total - copied) / (copied * 1000);
+                        log.info("{} files copied.  {} seconds remaining.", copied, timeLeft);
+                    }
+                }
+            }
+        }
+        log.info("{} total files now in {}.", processed.size(), this.fpkmDir);
         // Now write the file names to the output file.
         int count = 0;
-        for (File fpkmFile : fpkmFiles) {
-            String jobName = RnaJob.Phase.COPY.checkSuffix(fpkmFile.getName());
+        for (String fileName : processed) {
+            String jobName = RnaJob.Phase.COPY.checkSuffix(fileName);
             if (jobName != null) {
                 writer.println(jobName + "\t\t\t\t");
                 count++;

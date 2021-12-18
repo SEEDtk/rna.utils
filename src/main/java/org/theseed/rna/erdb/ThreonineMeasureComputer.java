@@ -32,8 +32,8 @@ public class ThreonineMeasureComputer extends MeasureComputer {
         SampleId sampleId = new SampleId(sampleData.getName());
         // Parse the sample properties.
         this.addMeasurement("time", sampleId.getTimePoint());
-        if (sampleId.isIPTG())
-            this.addMeasurement("iptg", 1.0);
+        double value = (sampleId.isIPTG() ? 1.0 : 0.0);
+       	this.addMeasurement("iptg", value);
         this.addMeasurement(sampleId.getFragment(SampleId.STRAIN_COL), 1.0);
         String operon = sampleId.getFragment(SampleId.OPERON_COL);
         if (! operon.contentEquals("0"))

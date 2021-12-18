@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.theseed.rna.erdb.ClusterLoadProcessor;
 import org.theseed.rna.erdb.DbLoadProcessor;
 import org.theseed.rna.erdb.MetaLoadProcessor;
+import org.theseed.rna.erdb.SampleUploadProcessor;
 import org.theseed.utils.BaseProcessor;
 
 /**
@@ -89,6 +90,9 @@ public class App
             break;
         case "download" :
             processor = new SampleDownloadProcessor();
+            break;
+        case "upload" :
+            processor = new SampleUploadProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
