@@ -93,7 +93,7 @@ public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(DbLoadProcessor.class);
+    protected static Logger log = LoggerFactory.getLogger(BaseDbLoadProcessor.class);
     /** list of feature IDs in the order expected by the database */
     private List<String> featureIndex;
     /** map of sample IDs to project info */

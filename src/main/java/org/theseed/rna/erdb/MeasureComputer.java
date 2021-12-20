@@ -3,11 +3,13 @@
  */
 package org.theseed.rna.erdb;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import org.theseed.rna.RnaData;
-import org.theseed.rna.RnaData.JobData;;
+
+import org.theseed.utils.ParseFailureException;;
 
 /**
  * This is the base class for computing measurements of an RNA Seq expression data sample.
@@ -24,6 +26,11 @@ public abstract class MeasureComputer {
      */
     public interface IParms {
 
+        /**
+         * @return the name of a tab-delimited file mapping sample IDs to measurements
+         */
+        public File getMeasureFile();
+
     }
 
     /**
@@ -35,14 +42,22 @@ public abstract class MeasureComputer {
             public MeasureComputer create(IParms processor) {
                 return new ThreonineMeasureComputer(processor);
             }
+        }, FILE {
+            @Override
+            public MeasureComputer create(IParms processor) throws ParseFailureException, IOException {
+                return new FileMeasureComputer(processor);
+            }
         };
 
         /**
          * @return a measurement computer for this type/
          *
          * @param processor		controlling command processor
+         *
+         * @throws ParseFailureException
+         * @throws IOException
          */
-        public abstract MeasureComputer create(IParms processor);
+        public abstract MeasureComputer create(IParms processor) throws ParseFailureException, IOException;
     }
 
     // FIELDS
@@ -72,6 +87,15 @@ public abstract class MeasureComputer {
     }
 
     /**
+     * Add a list of measurements to this collector.
+     *
+     * @param measurements	collection of measurement descriptors
+     */
+    protected void addMeasurements(Collection<MeasurementDesc> measurements) {
+        this.measures.addAll(measurements);
+    }
+
+    /**
      * Measure a sample and return its measurements.
      *
      * @param sampleId		ID of the sample being measured
@@ -79,12 +103,10 @@ public abstract class MeasureComputer {
      *
      * @return a collection of the measurements found
      */
-    public Collection<MeasurementDesc> measureSample(String sample_id, RnaData data) {
+    public Collection<MeasurementDesc> measureSample(String sample_id) {
         this.measures = new HashSet<MeasurementDesc>();
         this.sampleId = sample_id;
-        RnaData.JobData sampleData = data.getJob(sample_id);
-        int jobIdx = data.getColIdx(sample_id);
-        this.getMeasurements(data, jobIdx, sampleData);
+        this.getMeasurements(sample_id);
         // Hand off the measurements to the caller.
         var retVal = this.measures;
         this.measures = null;
@@ -94,12 +116,10 @@ public abstract class MeasureComputer {
     /**
      * Perform the measurements on the sample.
      *
-     * @param data			RNA SEQ database containing the sample
-     * @param jobIdx		column index of the sample
-     * @param sampleData	job data for the sample
+     * @param sample_id		ID of the sample whose measurements are desired
      *
      * @return a collection of the measurements found
      */
-    protected abstract void getMeasurements(RnaData data, int jobIdx, JobData sampleData);
+    protected abstract void getMeasurements(String sample_id);
 
 }

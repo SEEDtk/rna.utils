@@ -2,8 +2,7 @@ package org.theseed.rna.utils;
 
 import java.util.Arrays;
 
-import org.theseed.rna.erdb.ClusterLoadProcessor;
-import org.theseed.rna.erdb.DbLoadProcessor;
+import org.theseed.rna.erdb.MeasureLoadProcessor;
 import org.theseed.rna.erdb.MetaLoadProcessor;
 import org.theseed.rna.erdb.SampleUploadProcessor;
 import org.theseed.utils.BaseProcessor;
@@ -13,7 +12,7 @@ import org.theseed.utils.BaseProcessor;
  *
  * fpkm			run jobs to convert FASTQ files to FPKM results
  * fpkmSummary	produce a summary file from FPKM results
- * fpkmAll		generate all of the standard RNA SEQ files
+ * fpkmall		generate all of the standard RNA SEQ files
  * rnaCopy		copy RNA read files into PATRIC for processing by the FPKM commands
  * rnaSetup		update the sampleMeta.tbl file from the progress.txt and rna.production.tbl files
  * rnaProdFix	add production and density data to a sampleMeta.tbl file
@@ -22,13 +21,14 @@ import org.theseed.utils.BaseProcessor;
  * bGroups		read an RNA database and output the group IDs, organized by Blattner number
  * blacklist	remove correlation pairs relating to operons from a correlation file
  * sampleCheck	analyze variability in the expression data within a database
- * clusterCheck	perform comparative analysis of sample clusters
  * split		split a large database into clusters
  * sheets		create spreadsheets of the sample clusters output by the split sub-command
  * metaLoad		load genome metadata into an SQL database
- * dbLoad		load an RNA database into an SQL database
- * clusterLoad	load sample clustering data into an SQL database
+ * measureLoad	load measurements into an SQL database
  * download		download a set of RNA results from PATRIC and produce a metadata file for them
+ * upload		process RNA results from PATRIC and add them to a database
+ * sampleCorr	output the correlations between a genome's samples in the RNA database
+ * clusterLoad	refresh the cluster IDs from a sample correlation table
  */
 public class App
 {
@@ -82,17 +82,20 @@ public class App
         case "metaLoad" :
             processor = new MetaLoadProcessor();
             break;
-        case "dbLoad" :
-            processor = new DbLoadProcessor();
-            break;
-        case "clusterLoad" :
-            processor = new ClusterLoadProcessor();
+        case "measureLoad" :
+            processor = new MeasureLoadProcessor();
             break;
         case "download" :
             processor = new SampleDownloadProcessor();
             break;
         case "upload" :
             processor = new SampleUploadProcessor();
+            break;
+        case "sampleCorr" :
+            processor = new SampleCorrelationProcessor();
+            break;
+        case "clusterLoad" :
+            processor = new ClusterLoadProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
