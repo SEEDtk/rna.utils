@@ -16,10 +16,10 @@ import org.junit.jupiter.api.Test;
  * @author Bruce Parrello
  *
  */
-class TestClusterData {
+public class TestClusterData {
 
     @Test
-    void test() throws IOException {
+    public void test() throws IOException {
         File testFile = new File("data", "test.clusters.tbl");
         var testMap = ClusterFeatureData.readMap(testFile);
         assertThat(testMap.size(), equalTo(6));
