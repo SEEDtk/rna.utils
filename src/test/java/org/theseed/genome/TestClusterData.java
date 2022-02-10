@@ -5,7 +5,6 @@ package org.theseed.genome;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.theseed.test.Matchers.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +22,7 @@ public class TestClusterData {
         File testFile = new File("data", "test.clusters.tbl");
         var testMap = ClusterFeatureData.readMap(testFile);
         assertThat(testMap.size(), equalTo(6));
-        assertThat(testMap.containsKey("fig|511145.183.peg.1010"), isFalse());
+        assertThat(testMap.containsKey("fig|511145.183.peg.1010"), equalTo(false));
         ClusterFeatureData test1 = testMap.get("fig|511145.183.peg.11");
         assertThat(test1.getClusterId(), equalTo("CL1"));
         assertThat(test1.getFid(), equalTo("fig|511145.183.peg.11"));
