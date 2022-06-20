@@ -19,6 +19,7 @@ import org.theseed.utils.BaseProcessor;
  * sampleCheck	analyze variability in the expression data within a database
  * split		split a large database into clusters
  * sheets		create spreadsheets of the sample clusters output by the split sub-command
+ * p3audit		analyze the RNA jobs in a PATRIC directory
  */
 public class App
 {
@@ -65,6 +66,9 @@ public class App
             break;
         case "sheets" :
             processor = new ClusterSheetProcessor();
+            break;
+        case "p3audit" :
+            processor = new AuditProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

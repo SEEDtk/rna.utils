@@ -44,6 +44,7 @@ import org.theseed.utils.ParseFailureException;
  * 				"progress.txt"
  * --workDir	name of the work directory for temporary files; the default is "Temp" in the current directory
  * --test		no files will be copied; used for debugging
+ * --time		default time point to use (normally 24)
  *
  * @author Bruce Parrello
  *
@@ -84,6 +85,10 @@ public class RnaCopyProcessor extends BaseProcessor {
     @Option(name = "--test", usage = "if specified, the program will run, but the PATRIC workspace will not be updated")
     private boolean testMode;
 
+    /** default time point */
+    @Option(name = "--time", metaVar = "9", usage = "default time point")
+    private String defaultTime;
+
     /** remote output directory path */
     @Argument(index = 1, metaVar = "outDir", usage = "output directory in PATRIC workspace", required = true)
     private String outDir;
@@ -97,6 +102,7 @@ public class RnaCopyProcessor extends BaseProcessor {
         this.progressFileName = "progress.txt";
         this.workDir = new File(System.getProperty("user.dir"), "Temp");
         this.testMode = false;
+        this.defaultTime = "24";
     }
 
     @Override
@@ -115,6 +121,8 @@ public class RnaCopyProcessor extends BaseProcessor {
         this.inFiles = new TreeSet<File>(FileUtils.listFiles(this.inDir, FASTQ_PATTERNS, false));
         // Create the sample map.
         this.sampleMap = new HashMap<String, SampleId>(135);
+        // Save the default time point.
+        SampleId.DEFAULT_TIME = this.defaultTime;
         // Verify the progress file.
         boolean oldFile = false;
         File progressFile = new File(this.inDir, this.progressFileName);
