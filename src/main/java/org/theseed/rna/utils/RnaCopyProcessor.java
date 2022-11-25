@@ -31,9 +31,10 @@ import org.theseed.utils.BaseProcessor;
 import org.theseed.utils.ParseFailureException;
 
 /**
- * This command reads a directory of local RNA files and copies them to an output directory in the PATRIC workspace.
- * It takes as input the name of the input directory, the name of the output directory, and the name of the workspace.
- * A log of processed files is kept in the input directory so that we can smoothly resume after failure.
+ * This command reads a directory of local RNA files containing threonine samples and copies them to an output directory
+ * in the PATRIC workspace.  It takes as input the name of the input directory, the name of the output directory, and
+ * the name of the workspace.  A log of processed files is kept in the input directory so that we can smoothly
+ * resume after failure.
  *
  * The command-line options are as follows.
  *
