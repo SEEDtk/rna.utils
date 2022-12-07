@@ -204,7 +204,7 @@ public class RnaCopyProcessor extends BaseProcessor {
                     // Copy the file and write the progress.
                     log.info("Copying {} to {}.", inFile, targetFile);
                     if (! this.testMode)
-                        copyTask.copyLocalFile(inFile.toString(), targetFile);
+                        copyTask.copyLocalFile(inFile, targetFile);
                     progressStream.println(inFile.getName() + "\t" + sampleId.toString());
                 }
             }
