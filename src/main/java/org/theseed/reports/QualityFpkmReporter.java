@@ -11,7 +11,7 @@ import org.theseed.rna.RnaData.JobData;
 import org.theseed.rna.RnaData.Row;
 
 /**
- * This report displays the quality-related data for each sample.  The actual FPKM levels are not displayed.
+ * This report displays the quality-related data for each sample.  The actual TPM levels are not displayed.
  *
  * @author Bruce Parrello
  *

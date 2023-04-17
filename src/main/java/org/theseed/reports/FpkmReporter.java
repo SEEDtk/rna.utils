@@ -30,7 +30,7 @@ import org.theseed.samples.SampleMeta;
 import org.theseed.rna.RnaFeatureData;
 
 /**
- * This is the base class for the FPKM summary report.  This class is responsible for converting the columnar inputs to
+ * This is the base class for the TPM summary report.  This class is responsible for converting the columnar inputs to
  * rows.  That is, the data comes in by features within sample, but we want to write samples within feature.
  *
  * @author Bruce Parrello
@@ -45,8 +45,8 @@ public abstract class FpkmReporter implements AutoCloseable {
     protected static final Pattern PROCESSING_PATTERN = Pattern.compile("<p>(\\d+) reads, size:(\\d+) bytes, created (\\S+)");
     /** parsing pattern for samstat quality data (percent >= 30% good) */
     protected static final Pattern QUALITY_PATTERN = Pattern.compile("MAPQ >= 30</td> <td>\\d+\\.\\d+</td> <td>(\\d+\\.\\d+)");
-    /** parsing pattern for FPKM file name */
-    protected static final Pattern FPKM_PATTERN = Pattern.compile("(.+)_genes.fpkm");
+    /** parsing pattern for TPM file name */
+    protected static final Pattern TPM_PATTERN = Pattern.compile("(.+)_genes.fpkm");
     /** repository of collected data */
     private RnaData data;
     /** name of the current sample */
@@ -217,7 +217,7 @@ public abstract class FpkmReporter implements AutoCloseable {
     public void createMeta(File[] fpkmFiles) {
         this.data = new RnaData();
         for (File fpkmFile : fpkmFiles) {
-            Matcher m = FPKM_PATTERN.matcher(fpkmFile.getName());
+            Matcher m = TPM_PATTERN.matcher(fpkmFile.getName());
             if (m.matches()) {
                 String sampleId = m.group(1);
                 SampleMeta sampleMeta = new SampleMeta(sampleId, sampleId);

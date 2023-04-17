@@ -55,7 +55,7 @@ public class ExcelFpkmReporter extends FpkmReporter {
     private int nSamples;
     /** saved list of sample descriptors */
     private List<RnaData.JobData> samples;
-    /** array of FPKM totals */
+    /** array of TPM totals */
     private double[] totals;
     /** current row */
     private org.apache.poi.ss.usermodel.Row ssRow;
@@ -362,7 +362,7 @@ public class ExcelFpkmReporter extends FpkmReporter {
                 this.setStyledCell(1, "Old Name", this.headStyle);
                 this.setStyledCell(2, "Thr g/l", this.headStyle);
                 this.setStyledCell(3, "OD", this.headStyle);
-                this.setStyledCell(4, "FPKM Total", this.headStyle);
+                this.setStyledCell(4, "TPM Total", this.headStyle);
                 this.setStyledCell(5, "reads", this.headStyle);
                 this.setStyledCell(6, "size", this.headStyle);
                 this.setStyledCell(7, "pct_qual", this.headStyle);

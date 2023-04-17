@@ -31,7 +31,7 @@ import org.theseed.utils.BaseProcessor;
  * -v	show more detailed progress messages
  *
  * --workDir	work directory for temporary files
- * --localDir	local directory containing the FPKM and samstat files; if specified, the files will be taken from here
+ * --localDir	local directory containing the TPM and samstat files; if specified, the files will be taken from here
  * 				instead of being downloaded
  *
  * @author Bruce Parrello
@@ -42,7 +42,7 @@ public class FpkmAllProcessor extends BaseProcessor {
     // FIELDS
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(FpkmAllProcessor.class);
-    /** directory containing the FPKM and samstat files */
+    /** directory containing the TPM and samstat files */
     private File fpkmDir;
 
     // COMMAND-LINE OPTIONS
@@ -52,7 +52,7 @@ public class FpkmAllProcessor extends BaseProcessor {
     private File workDir;
 
     /** local directory containing data files */
-    @Option(name = "--localDir", metaVar = "localDir", usage = "local directory containing FPKM and samstat files from PATRIC")
+    @Option(name = "--localDir", metaVar = "localDir", usage = "local directory containing TPM and samstat files from PATRIC")
     private File localDir;
 
     /** if TRUE, the local copy of the remote files will not be deleted on exit */
@@ -63,8 +63,8 @@ public class FpkmAllProcessor extends BaseProcessor {
     @Argument(index = 0, metaVar = "parms.tbl", usage = "input file containing command specifications", required = true)
     private File inFile;
 
-    /** PATRIC directory containing the FPKM files */
-    @Argument(index = 1, metaVar = "user@patricbrc.org/inputDirectory", usage = "PATRIC input directory for FPKM tracking files", required = true)
+    /** PATRIC directory containing the TPM files */
+    @Argument(index = 1, metaVar = "user@patricbrc.org/inputDirectory", usage = "PATRIC input directory for TPM tracking files", required = true)
     private String inDir;
 
     /** controlling workspace name */
@@ -95,19 +95,19 @@ public class FpkmAllProcessor extends BaseProcessor {
 
     @Override
     protected void runCommand() throws Exception {
-        // Determine where the FPKM and samstat files are.
+        // Determine where the TPM and samstat files are.
         if (this.localDir != null) {
             this.fpkmDir = this.localDir;
-            log.info("Using FPKM tracking data downloaded to {}.", this.localDir);
+            log.info("Using TPM tracking data downloaded to {}.", this.localDir);
         } else {
             // Insure we have an empty space for the work files.
-            File fpkmDir = new File(this.workDir, RnaJob.FPKM_DIR);
+            File fpkmDir = new File(this.workDir, RnaJob.TPM_DIR);
             if (fpkmDir.exists())
                 FileUtils.forceDelete(fpkmDir);
             // Get a directory of the input files.
-            log.info("Copying FPKM tracking files from {}.", this.inDir);
+            log.info("Copying TPM tracking files from {}.", this.inDir);
             CopyTask copy = new CopyTask(this.workDir, this.workspace);
-            File[] fpkmFiles = copy.copyRemoteFolder(this.inDir + "/" + RnaJob.FPKM_DIR, this.keepFlag);
+            File[] fpkmFiles = copy.copyRemoteFolder(this.inDir + "/" + RnaJob.TPM_DIR, this.keepFlag);
             log.info("{} files copied into {}.", fpkmFiles.length, fpkmDir);
             this.fpkmDir = fpkmDir;
         }

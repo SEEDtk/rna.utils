@@ -26,7 +26,7 @@ import org.theseed.rna.jobs.RnaJob;
 import org.theseed.utils.BaseProcessor;
 
 /**
- * This class will produce a summary file from all the FPKM files in a PATRIC directory.  This summary file can
+ * This class will produce a summary file from all the TPM files in a PATRIC directory.  This summary file can
  * be used later to build a web page.
  *
  * The positional parameters are the name of the genome file for the aligned genome, the name of the regulon definition
@@ -54,10 +54,10 @@ import org.theseed.utils.BaseProcessor;
  *
  * --format		output format (default TEXT)
  * --workDir	work directory for temporary files
- * --normalize	if specified, RNA features will be removed, and the FPKM numbers will be normalized to TPMs
+ * --normalize	if specified, RNA features will be removed, and the TPM numbers will be normalized to TPMs
  * --save		if specified, the name of a file to contain a binary version of the output
  * --abridged	if specified, suspicious samples will not be included in the output
- * --local		if specified, a local directory containing the FPKM input files
+ * --local		if specified, a local directory containing the TPM input files
  * --baseOut	if specified, the name of a file to contain baseline values for each feature
  * --baseIn		if specified, the name of a file containing default baseline expression levels; otherwise, the
  * 				baseline levels will be computed from the samples in this run
@@ -107,11 +107,11 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
     private File saveFile;
 
     /** normalize */
-    @Option(name = "--normalize", aliases = { "--normalized" }, usage = "if specified, FPKMs will be converted to TPMs")
+    @Option(name = "--normalize", aliases = { "--normalized" }, usage = "if specified, TPMs will be converted to TPMs")
     private boolean normalizeFlag;
 
     /** local file directory */
-    @Option(name = "--local", usage = "if specified, a directory containing local copies of the FPKM gene-tracking files")
+    @Option(name = "--local", usage = "if specified, a directory containing local copies of the TPM gene-tracking files")
     private File localDir;
 
     /** baseline output file */
@@ -130,8 +130,8 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
     @Argument(index = 1, metaVar = "regulons.tbl", usage = "regulon/modulon definition file", required = true)
     private File regulonFile;
 
-    /** PATRIC directory containing the FPKM files */
-    @Argument(index = 2, metaVar = "user@patricbrc.org/inputDirectory", usage = "PATRIC input directory for FPKM tracking files", required = true)
+    /** PATRIC directory containing the TPM files */
+    @Argument(index = 2, metaVar = "user@patricbrc.org/inputDirectory", usage = "PATRIC input directory for TPM tracking files", required = true)
     private String inDir;
 
     /** controlling workspace name */
@@ -213,10 +213,10 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
             this.featuresByLocation = new TreeSet<Feature>(new Feature.LocationComparator());
             for (Feature feat : this.baseGenome.getFeatures())
                 this.featuresByLocation.add(feat);
-            // Insure we have local copies of the FPKM files.
+            // Insure we have local copies of the TPM files.
             File[] fpkmFiles;
             if (this.localDir != null) {
-                log.info("Locating FPKM tracking files in {}.", this.localDir);
+                log.info("Locating TPM tracking files in {}.", this.localDir);
                 fpkmFiles = this.localDir.listFiles(new GeneFileFilter());
             } else {
                 File tempDir = copyFpkmFiles();
@@ -245,10 +245,10 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
                         this.outStream.readSamStat(jobName, samstatFile);
                         try (TabbedLineReader fpkmStream = new TabbedLineReader(fpkmFile)) {
                             // Parse the file header.
-                            log.info("Reading FPKM file for sample {}.", jobName);
+                            log.info("Reading TPM file for sample {}.", jobName);
                             int fidCol = fpkmStream.findField("tracking_id");
                             int locCol = fpkmStream.findField("locus");
-                            int weightCol = fpkmStream.findField("FPKM");
+                            int weightCol = fpkmStream.findField("TPM");
                             // Count the records read.
                             int count = 1;
                             // Read the data lines.
@@ -305,7 +305,7 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
             this.outStream.readRegulons(this.regulonFile);
             // Check for normalization.
             if (this.normalizeFlag) {
-                log.info("Normalizing FPKMs to TPMs.");
+                log.info("Normalizing TPMs to TPMs.");
                 this.outStream.normalize();
             }
             // Store the default baselines.
@@ -333,16 +333,16 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
     }
 
     /**
-     * Copy the necessary FPKM and SAMSTAT.HTML files to a local directory.
+     * Copy the necessary TPM and SAMSTAT.HTML files to a local directory.
      *
-     * @return the directory containing the FPKM files copied
+     * @return the directory containing the TPM files copied
      *
      * @throws IOException
      */
     private File copyFpkmFiles() throws IOException {
-        log.info("Copying FPKM tracking files from {}.", this.inDir);
+        log.info("Copying TPM tracking files from {}.", this.inDir);
         CopyTask copy = new CopyTask(this.workDir, this.workspace);
-        File[] allFiles = copy.copyRemoteFolder(this.inDir + "/" + RnaJob.FPKM_DIR, false);
+        File[] allFiles = copy.copyRemoteFolder(this.inDir + "/" + RnaJob.TPM_DIR, false);
         return allFiles[0].getParentFile();
     }
 
@@ -363,7 +363,7 @@ public class FpkmSummaryProcessor extends BaseProcessor implements FpkmReporter.
 
     @Override
     public String getSheetName() {
-        return (this.normalizeFlag ? "TPM" : "FPKM");
+        return (this.normalizeFlag ? "TPM" : "TPM");
     }
 
     @Override

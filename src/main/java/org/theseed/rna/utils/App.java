@@ -7,9 +7,9 @@ import org.theseed.utils.BaseProcessor;
 /**
  * Commands for utilities relating to RNA-Seq processing.
  *
- * fpkmSummary	produce a summary file from FPKM results
+ * fpkmSummary	produce a summary file from TPM results
  * fpkmall		generate all of the standard RNA SEQ files
- * rnaCopy		copy RNA read files into PATRIC for processing by the FPKM commands
+ * rnaCopy		copy RNA read files into PATRIC for processing by the TPM commands
  * rnaSetup		update the sampleMeta.tbl file from the progress.txt and rna.production.tbl files
  * rnaProdFix	add production and density data to a sampleMeta.tbl file
  * rnaMaps		consolidate RNA maps from batch expression data runs

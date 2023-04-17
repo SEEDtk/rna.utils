@@ -39,7 +39,7 @@ import org.theseed.utils.ParseFailureException;
  *
  * 	Tuxedo_0_replicateN_XXXXXXXX_1_ptrim.fq_XXXXXXXX_2.ptrim.fq.bam.samstat.html
  *
- * where "N" is a number and "XXXXXXXX" is the sample ID.  The FPKM mapping file corresponding to this will have the name
+ * where "N" is a number and "XXXXXXXX" is the sample ID.  The TPM mapping file corresponding to this will have the name
  *
  * 	Tuxedo_0_replicateN_genes.fpkm_tracking
  *
@@ -72,18 +72,18 @@ public class RnaMapProcessor extends BaseProcessor {
     private Set<String> outputSamples;
     /** map of replicate numbers to sample IDs */
     private Map<String, String> sampleMap;
-    /** set of replicate numbers with FPKM files */
+    /** set of replicate numbers with TPM files */
     private Set<String> replicateSet;
     /** set of names for bad jobs to skip */
     private Set<String> badJobs;
     /** pattern for SAMSTAT html file name */
     private static final Pattern SAMSTAT_PATTERN = Pattern.compile("Tuxedo_0_replicate(\\d+)_([^_]+)_\\S+\\.bam\\.samstat\\.html");
-    /** pattern for FPKM file name */
-    private static final Pattern FPKM_PATTERN = Pattern.compile("Tuxedo_0_replicate(\\d+)_genes\\.fpkm_tracking");
+    /** pattern for TPM file name */
+    private static final Pattern TPM_PATTERN = Pattern.compile("Tuxedo_0_replicate(\\d+)_genes\\.fpkm_tracking");
     /** SAMSTAT output file name suffix */
     private static final String SAMSTAT_SUFFIX = ".samstat.html";
-    /** FPKM output file name suffix */
-    private static final String FPKM_SUFFIX = "_genes.fpkm";
+    /** TPM output file name suffix */
+    private static final String TPM_SUFFIX = "_genes.fpkm";
 
     // COMMAND-LINE OPTIONS
 
@@ -141,7 +141,7 @@ public class RnaMapProcessor extends BaseProcessor {
             scanInputDirectory(job);
             // Create the copy helper.
             CopyTask copyTask = new CopyTask(this.workDir, this.workspace);
-            // Loop through the FPKM files.
+            // Loop through the TPM files.
             for (String replicateNum : this.replicateSet) {
                 String sampleId = this.sampleMap.get(replicateNum);
                 if (sampleId == null)
@@ -155,8 +155,8 @@ public class RnaMapProcessor extends BaseProcessor {
                             + "_1_ptrim.fq_" + sampleId + "_2_ptrim.fq.bam.samstat.html";
                     String fpkmName = job + "/Tuxedo_0_replicate" + replicateNum + "_genes.fpkm_tracking";
                     // Copy them to the output.
-                    copyTask.copyRemoteFile(samStatName, this.outDir + "/FPKM/" + sampleId + SAMSTAT_SUFFIX);
-                    copyTask.copyRemoteFile(fpkmName, this.outDir + "/FPKM/" + sampleId + FPKM_SUFFIX);
+                    copyTask.copyRemoteFile(samStatName, this.outDir + "/TPM/" + sampleId + SAMSTAT_SUFFIX);
+                    copyTask.copyRemoteFile(fpkmName, this.outDir + "/TPM/" + sampleId + TPM_SUFFIX);
                     this.outputSamples.add(sampleId);
                 }
             }
@@ -199,7 +199,7 @@ public class RnaMapProcessor extends BaseProcessor {
         log.info("Scanning job directory {}.", jobDir);
         List<DirEntry> inFiles = dirTask.list(jobDir);
         // Run through the job directory files, creating the sample map.  We will also track the replicate numbers
-        // for which FPKM files exist.
+        // for which TPM files exist.
         this.replicateSet = new HashSet<String>((inFiles.size() * 4 + 2) / 3);
         this.sampleMap = new HashMap<String, String>((inFiles.size() * 4 + 2) / 3);
         for (DirEntry inFile : inFiles) {
@@ -208,14 +208,14 @@ public class RnaMapProcessor extends BaseProcessor {
                 // Here we have a SAMSTAT file.  Map the replicate number to the sample ID.
                 this.sampleMap.put(m.group(1), m.group(2));
             } else {
-                m = FPKM_PATTERN.matcher(inFile.getName());
+                m = TPM_PATTERN.matcher(inFile.getName());
                 if (m.matches()) {
-                    // Here we have an FPKM file.  Save the replicate number.
+                    // Here we have an TPM file.  Save the replicate number.
                     replicateSet.add(m.group(1));
                 }
             }
         }
-        log.info("{} SAMSTAT files found.  {} FPKM files found.", this.sampleMap.size(), this.replicateSet.size());
+        log.info("{} SAMSTAT files found.  {} TPM files found.", this.sampleMap.size(), this.replicateSet.size());
     }
 
     /**
@@ -225,10 +225,10 @@ public class RnaMapProcessor extends BaseProcessor {
         DirTask dirTask = new DirTask(this.workDir, this.workspace);
         // List all the files in the output directory.
         log.info("Scanning output directory {}.", this.outDir);
-        List<DirEntry> outFiles = dirTask.list(this.outDir + "/FPKM");
+        List<DirEntry> outFiles = dirTask.list(this.outDir + "/TPM");
         // Save all the samples already copied.
-        this.outputSamples = outFiles.stream().map(x -> x.getName()).filter(x -> x.endsWith(FPKM_SUFFIX))
-                .map(x -> StringUtils.removeEnd(x, FPKM_SUFFIX)).collect(Collectors.toSet());
+        this.outputSamples = outFiles.stream().map(x -> x.getName()).filter(x -> x.endsWith(TPM_SUFFIX))
+                .map(x -> StringUtils.removeEnd(x, TPM_SUFFIX)).collect(Collectors.toSet());
         log.info("{} samples found in output directory.", this.outputSamples.size());
     }
 
