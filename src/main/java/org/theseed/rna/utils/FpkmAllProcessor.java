@@ -12,10 +12,10 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
 import org.theseed.cli.CopyTask;
 import org.theseed.io.LineReader;
 import org.theseed.rna.jobs.RnaJob;
-import org.theseed.utils.BaseProcessor;
 
 /**
  * This script runs the fpkmsummary command to generate all eight of the RNA Seq data files.  The command parameters

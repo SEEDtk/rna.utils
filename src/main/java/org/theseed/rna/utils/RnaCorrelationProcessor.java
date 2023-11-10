@@ -19,6 +19,8 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.rna.BaselineComputer;
 import org.theseed.rna.ExpressionConverter;
@@ -27,8 +29,6 @@ import org.theseed.rna.IBaselineProvider;
 import org.theseed.rna.RnaData;
 import org.theseed.rna.RnaFeatureData;
 import org.theseed.rna.TriageExpressionConverter;
-import org.theseed.utils.BaseProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command will create a file describing the correlation between genes in an RNA database.  Two distance measures

@@ -16,12 +16,12 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.kohsuke.args4j.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.excel.CustomWorkbook;
 import org.theseed.genome.ClusterFeatureData;
 import org.theseed.rna.RnaData;
 import org.theseed.rna.RnaData.Row;
-import org.theseed.utils.BaseProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command creates spreadsheets for RNA databases in a single directory.  Each database is put in

@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.TextStringBuilder;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.rna.RnaData;
 import org.theseed.rna.RnaFeatureData;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This report does baseline computation on clustered samples.  The baseline is computed independently

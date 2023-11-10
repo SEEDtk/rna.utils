@@ -16,6 +16,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
 import org.theseed.cli.CopyTask;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
@@ -23,7 +24,6 @@ import org.theseed.io.TabbedLineReader;
 import org.theseed.locations.Location;
 import org.theseed.reports.FpkmReporter;
 import org.theseed.rna.jobs.RnaJob;
-import org.theseed.utils.BaseProcessor;
 
 /**
  * This class will produce a summary file from all the TPM files in a PATRIC directory.  This summary file can
