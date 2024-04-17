@@ -12,11 +12,11 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.reports.SampleCheckReporter;
 import org.theseed.reports.SampleCheckReporter.IParms;
 import org.theseed.rna.RnaData;
-import org.theseed.utils.BaseReportProcessor;
 
 /**
  * This command produces reports on the variability of the samples in an RNA seq sample database.

@@ -14,10 +14,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.rna.RnaData;
 import org.theseed.rna.RnaFeatureData;
-import org.theseed.utils.BaseReportProcessor;
 
 /**
  * This command reads an RNA Seq database and writes out a table of group IDs by Blattner number.
